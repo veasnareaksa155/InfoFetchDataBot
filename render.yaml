@@ -1,0 +1,17 @@
+services:
+  - type: worker
+    name: telegram-sales-bot
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: SPREADSHEET_ID
+        sync: false
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: TIMEZONE_OFFSET_HOURS
+        value: "+7"

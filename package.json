@@ -1,0 +1,24 @@
+{
+  "name": "telegram-group-sheets-bot",
+  "version": "1.0.0",
+  "description": "Telegram Bot to capture group messages and store them in Google Sheets",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "google-sheets",
+    "telegraf"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "googleapis": "^144.0.0",
+    "telegraf": "^4.16.3"
+  }
+}

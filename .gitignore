@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment and Secrets
+.env
+.env.local
+*.json
+!package.json
+!package-lock.json
+
+# Exclude Google Credentials explicitly
+credentials.json
+infofetchdatabot-*.json
+
+# Local State and Scratch
+bot_state.json
+scratch/
+
+# System and Logs
+*.log
+.DS_Store
