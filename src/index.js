@@ -1,6 +1,16 @@
+import http from 'http';
 import { config, validateConfig } from './config.js';
 import { initializeSheet } from './googleSheets.js';
 import { createBot } from './bot.js';
+
+// Free Tier Render Port Listener (Enables 100% FREE $0/month Web Service on Render)
+const port = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end('🤖 Telegram Sales Logger Bot is RUNNING 24/7 (Free Web Service Active)!');
+}).listen(port, () => {
+  console.log(`🌐 Free Web Service HTTP server listening on port ${port}`);
+});
 
 async function main() {
   console.log('🚀 Starting Telegram Group Data Logger Bot...');

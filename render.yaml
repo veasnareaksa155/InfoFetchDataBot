@@ -1,7 +1,8 @@
 services:
-  - type: worker
-    name: telegram-sales-bot
+  - type: web
+    name: infofetchdatabot
     env: node
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
