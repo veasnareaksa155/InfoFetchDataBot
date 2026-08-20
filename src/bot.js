@@ -623,8 +623,14 @@ export function createBot() {
         return;
       }
 
-      // Ignore non-command messages sent in Private Chat (PM) to prevent logging PM chats into Google Sheets
+      // Delete non-command report/data messages sent in Private Chat (PM) to keep PM chat clean
       if (ctx.chat && ctx.chat.type === 'private') {
+        const contentStr = msg.text || msg.caption || '';
+        const isPmDataMessage = /រម៉ក|រ៉ឺម៉ក|ក្រុម|លក់បាន|ប្រធាន|សមាជិក|លុយក្រៅ|លុយកុង|លុយក្នុងកុង|ទីតាំង|ចំនួនមនុស្ស|ទិន្នន័យលក់|របាយការណ៍លក់|ផលិតផលលក់|លុយសរុប|សរុបលក់បាន/i.test(contentStr);
+        if (isPmDataMessage) {
+          try { await ctx.deleteMessage(); } catch (e) {}
+          await ctx.reply(`⚠️ <i>សាររបាយការណ៍លក់ត្រូវបានលុបចេញពី PM! សូមផ្ញើសាររបាយការណ៍លក់ក្នុង Telegram Group ដើម្បកត់ត្រាចូល Google Sheets!</i> ✨`, { parse_mode: 'HTML' }).catch(() => {});
+        }
         return;
       }
 
@@ -646,11 +652,14 @@ export function createBot() {
       // Check if message is intended to be a sales report by searching for report keywords
       const isReportKeywordMatch = /រម៉ក|រ៉ឺម៉ក|ក្រុម|លក់បាន|ប្រធាន|សមាជិក|លុយក្រៅ|លុយកុង|លុយក្នុងកុង|ទីតាំង|ចំនួនមនុស្ស|ទិន្នន័យលក់|របាយការណ៍លក់|ផលិតផលលក់|លុយសរុប|សរុបលក់បាន/i.test(content);
 
+      // Validate official form format (+ ក្រុម..., + អ្នកគ្រប់គ្រង..., + ទីតាំង..., + សមាជិក..., + លុយសរុប...)
+      const formValidation = validateOfficialFormFormat(content);
+
       // Parse data with Telegram Group Title auto-extraction
       const parsed = parseMessageData(content, chatTitle);
       const kr = parsed ? parsed.khmerReport : null;
 
-      const isValidReport = kr && kr.isKhmerSalesReport && (kr.totalMoneyNum > 0 || (kr.subGroups && kr.subGroups.length > 0)) && (kr.sellerCount > 0 || kr.sellersList !== 'N/A' || kr.productsText !== 'N/A');
+      const isValidReport = formValidation.isValid && kr && kr.isKhmerSalesReport && (kr.totalMoneyNum > 0 || (kr.subGroups && kr.subGroups.length > 0));
 
       if (isValidReport) {
         const reportDate = kr.reportDate || timestamp.split(' ')[0];
@@ -738,9 +747,15 @@ export function createBot() {
         } catch (e) {}
 
         let missingNotice = `❌ <b>សាររបាយការណ៍មិនទាន់ត្រឹមត្រូវតាម Form គំរូឡើយ! (Incomplete Form)</b>\n\n`;
-        missingNotice += `សូមពិនិត្យមើល និងបំពេញព័ត៌មានដែលខ្វះក្នុងសាររបស់អ្នក៖\n`;
-        missingNotice += `• <b>ចំនួនមនុស្ស/សមាជិក:</b> ត្រូវដាក់ចំនួនមនុស្ស ឬបញ្ជីសមាជិក\n`;
-        missingNotice += `• <b>ចំនួនទឹកប្រាក់លក់:</b> ត្រូវដាក់ចំនួនទឹកប្រាក់លក់ (ឧទាហរណ៍: 128000៛)\n\n`;
+        if (formValidation.missingFields && formValidation.missingFields.length > 0) {
+          missingNotice += `សូមពិនិត្យមើល និងបំពេញព័ត៌មានដែលខ្វះក្នុងសាររបស់អ្នក៖\n`;
+          for (const missingItem of formValidation.missingFields) {
+            missingNotice += `• <b>${missingItem}</b>\n`;
+          }
+          missingNotice += `\n`;
+        } else {
+          missingNotice += `សូមពិនិត្យមើល និងបំពេញព័ត៌មានដែលខ្វះក្នុងសាររបស់អ្នក (ចំនួនមនុស្ស / ទឹកប្រាក់ / មុខទំនិញ)!\n\n`;
+        }
         missingNotice += `👉 <i>សូមចុចប៊ូតុង <b>[📝 Copy Form របាយការណ៍]</b> ឬវាយ <code>/form</code> ដើម្បីយក Form គំរូត្រឹមត្រូវ!</i> 📝`;
 
         await ctx.reply(missingNotice, { parse_mode: 'HTML', reply_to_message_id: msg.message_id }).catch(() => {

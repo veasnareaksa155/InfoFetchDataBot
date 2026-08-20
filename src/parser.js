@@ -24,6 +24,55 @@ export function cleanSellerName(rawName) {
 }
 
 /**
+ * Validate that a Khmer sales report message contains ALL mandatory fields of the official form:
+ * 1. Group / Remork Name (+ ក្រុម...)
+ * 2. Manager Name (+ អ្នកគ្រប់គ្រង...)
+ * 3. Location (+ ទីតាំង...)
+ * 4. Members List / Seller Count (+ សមាជិករួមមាន...)
+ * 5. Total Sales Amount (+ លុយសរុប = ...៛)
+ */
+export function validateOfficialFormFormat(text = '') {
+  if (!text) return { isValid: false, missingFields: ['សារទាំងមូល'] };
+
+  const missingFields = [];
+
+  // 1. Group / Remork Name (+ ក្រុម... or ក្រុមទី...)
+  const hasGroup = /[\+➕]?\s*(?:ក្រុម|រ៉ឺម៉ក|រម៉ក)/i.test(text);
+  if (!hasGroup) {
+    missingFields.push('ឈ្មោះក្រុម/រ៉ឺម៉ក (+ ក្រុមទី...)');
+  }
+
+  // 2. Manager Name (+ អ្នកគ្រប់គ្រង...)
+  const hasManager = /[\+➕]?\s*(?:អ្នកគ្រប់គ្រង|ប្រធានក្រុម|ប្រធាន)/i.test(text);
+  if (!hasManager) {
+    missingFields.push('អ្នកគ្រប់គ្រង (+ អ្នកគ្រប់គ្រង ...)');
+  }
+
+  // 3. Location (+ ទីតាំង...)
+  const hasLocation = /[\+➕]?\s*ទីតាំង/i.test(text);
+  if (!hasLocation) {
+    missingFields.push('ទីតាំង (+ ទីតាំង ...)');
+  }
+
+  // 4. Members list or Seller count (+ សមាជិក... or Xនាក់)
+  const hasMembers = /[\+➕]?\s*(?:សមាជិក|អ្នកលក់)|នាក់/i.test(text);
+  if (!hasMembers) {
+    missingFields.push('សមាជិក/ចំនួនមនុស្ស (+ សមាជិករួមមាន ...)');
+  }
+
+  // 5. Total Sales Amount (+ លុយសរុប = ...៛)
+  const hasTotal = /[\+➕]?\s*(?:លុយសរុប|ប្រាក់សរុប|សរុបលក់បាន|លក់បាន)\s*[:=]?\s*\d+/i.test(text);
+  if (!hasTotal) {
+    missingFields.push('ចំនួនលុយសរុប (+ លុយសរុប = ...៛)');
+  }
+
+  return {
+    isValid: missingFields.length === 0,
+    missingFields
+  };
+}
+
+/**
  * Extract Group Name & Manager Name directly from Telegram Group Title (e.g. "រ៉ឺម៉កទី2 បងA5", "ក្រុមទី1 បងរិត")
  */
 export function parseGroupTitle(chatTitle = '') {
