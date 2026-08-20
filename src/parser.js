@@ -36,34 +36,34 @@ export function validateOfficialFormFormat(text = '') {
 
   const missingFields = [];
 
-  // 1. Group / Remork Name (+ ក្រុម... or ក្រុមទី...)
-  const hasGroup = /[\+➕]?\s*(?:ក្រុម|រ៉ឺម៉ក|រម៉ក)/i.test(text);
+  // 1. Group / Remork Name (e.g. + ក្រុមទី2, ក្រុមទី..., រ៉ឺម៉ក...)
+  const hasGroup = /(?:ក្រុម|រ៉ឺម៉ក|រម៉ក)/i.test(text);
   if (!hasGroup) {
-    missingFields.push('ឈ្មោះក្រុម/រ៉ឺម៉ក (+ ក្រុមទី...)');
+    missingFields.push('ឈ្មោះក្រុម/រ៉ឺម៉ក (ឧទាហរណ៍: + ក្រុមទី២)');
   }
 
-  // 2. Manager Name (+ អ្នកគ្រប់គ្រង...)
-  const hasManager = /[\+➕]?\s*(?:អ្នកគ្រប់គ្រង|ប្រធានក្រុម|ប្រធាន)/i.test(text);
+  // 2. Manager Name (+ អ្នកគ្រប់គ្រង..., + ប្រធាន..., or parentheses in title like (បងA5))
+  const hasManager = /(?:អ្នកគ្រប់គ្រង|ប្រធាន|\([^\)]+\))/i.test(text);
   if (!hasManager) {
-    missingFields.push('អ្នកគ្រប់គ្រង (+ អ្នកគ្រប់គ្រង ...)');
+    missingFields.push('អ្នកគ្រប់គ្រង (ឧទាហរណ៍: + អ្នកគ្រប់គ្រង ឈ្មោះ...)');
   }
 
   // 3. Location (+ ទីតាំង...)
-  const hasLocation = /[\+➕]?\s*ទីតាំង/i.test(text);
+  const hasLocation = /ទីតាំង/i.test(text);
   if (!hasLocation) {
-    missingFields.push('ទីតាំង (+ ទីតាំង ...)');
+    missingFields.push('ទីតាំង (ឧទាហរណ៍: + ទីតាំង ចល័ត)');
   }
 
-  // 4. Members list or Seller count (+ សមាជិក... or Xនាក់)
-  const hasMembers = /[\+➕]?\s*(?:សមាជិក|អ្នកលក់)|នាក់/i.test(text);
+  // 4. Members List or Seller count (+ សមាជិក..., នាក់)
+  const hasMembers = /(?:សមាជិក|អ្នកលក់|នាក់)/i.test(text);
   if (!hasMembers) {
-    missingFields.push('សមាជិក/ចំនួនមនុស្ស (+ សមាជិករួមមាន ...)');
+    missingFields.push('សមាជិក/ចំនួនមនុស្ស (ឧទាហរណ៍: + សមាជិករួមមាន...)');
   }
 
-  // 5. Total Sales Amount (+ លុយសរុប = ...៛)
-  const hasTotal = /[\+➕]?\s*(?:លុយសរុប|ប្រាក់សរុប|សរុបលក់បាន|លក់បាន)\s*[:=]?\s*\d+/i.test(text);
+  // 5. Total Sales Amount (លុយសរុប..., ប្រាក់សរុប..., លក់បាន...)
+  const hasTotal = /(?:លុយសរុប|ប្រាក់សរុប|សរុបលក់បាន|លក់បាន)\s*[:=]?\s*\d+/i.test(text);
   if (!hasTotal) {
-    missingFields.push('ចំនួនលុយសរុប (+ លុយសរុប = ...៛)');
+    missingFields.push('ចំនួនលុយសរុប (ឧទាហរណ៍: + លុយសរុប = 128000៛)');
   }
 
   return {
