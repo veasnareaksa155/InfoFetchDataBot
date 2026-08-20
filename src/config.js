@@ -52,10 +52,10 @@ export function validateConfig() {
   }
 
   const hasCredentialsFile = fs.existsSync(path.resolve(config.credentialsPath));
-  const hasInlineCreds = config.serviceAccountEmail && config.privateKey;
+  const hasInlineCreds = Boolean(config.serviceAccountEmail && config.privateKey) || Boolean(process.env.GOOGLE_CREDENTIALS_JSON);
 
   if (!hasCredentialsFile && !hasInlineCreds) {
-    missing.push('Google Credentials (either credentials.json file or GOOGLE_SERVICE_ACCOUNT_EMAIL & GOOGLE_PRIVATE_KEY)');
+    missing.push('Google Credentials (either credentials.json file, GOOGLE_CREDENTIALS_JSON, or GOOGLE_SERVICE_ACCOUNT_EMAIL & GOOGLE_PRIVATE_KEY)');
   }
 
   return {
