@@ -664,21 +664,17 @@ export function createBot() {
       if (isValidReport) {
         const reportDate = kr.reportDate || timestamp.split(' ')[0];
 
-        // 1. React IMMEDIATELY to the user's report message with ✅ or ✏️ emoji - NO text reply!
+        // 1. React IMMEDIATELY to the user's report message with 👍 or ✏️ emoji
         try {
           if (typeof ctx.react === 'function') {
-            await ctx.react(isEdited ? '✏️' : '✅');
+            await ctx.react(isEdited ? '✏️' : '👍');
           } else {
-            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: isEdited ? '✏️' : '✅' }]);
+            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: isEdited ? '✏️' : '👍' }]);
           }
         } catch (reactErr) {
-          try {
-            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '✅' }]);
-          } catch (e2) {
-            console.warn(`[REACTION NOTICE] Telegram reaction failed for msg ${msg.message_id}: ${e2.message}`);
-          }
+          console.warn(`[REACTION NOTICE] Telegram reaction failed for msg ${msg.message_id}: ${reactErr.message}`);
         }
-        console.log(`[${isEdited ? '✏️ EDITED' : '✅'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
+        console.log(`[${isEdited ? '✏️ EDITED' : '👍'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
 
         // 2. Log single/multi-group report data to Google Sheets
         if (kr.isMultiGroup && kr.subGroups && kr.subGroups.length > 0) {
@@ -732,15 +728,15 @@ export function createBot() {
         await calculateAndSyncDailyGrandTotal(reportDate);
 
       } else if (isReportKeywordMatch) {
-        // Message matches report keywords BUT fails required form format -> React ❌ - NO text reply!
+        // Message matches report keywords BUT fails required form format -> React 👎
         try {
           if (typeof ctx.react === 'function') {
-            await ctx.react('❌');
+            await ctx.react('👎');
           } else {
-            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '❌' }]);
+            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '👎' }]);
           }
         } catch (e) {
-          console.warn(`[REACTION NOTICE] Failed to react ❌ for msg ${msg.message_id}: ${e.message}`);
+          console.warn(`[REACTION NOTICE] Failed to react 👎 for msg ${msg.message_id}: ${e.message}`);
         }
       } else {
         // Non-report chat message in group -> Keep user message intact!
