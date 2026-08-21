@@ -180,11 +180,12 @@ export function parseKhmerSalesReport(text = '', chatTitle = '') {
     let grandPeopleCount = 0;
     let grandTotalMoneyCalculated = 0;
 
+    let groupIndex = 1;
     for (const block of groupBlocks) {
       const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
       if (lines.length === 0) continue;
 
-      const headerLine = lines[0]; // e.g. "ក្រុមទី1(បងរិត 9 ទីតាំង= 12នាក់)" or "រ៉ឺម៉កទី2(បងA5 2 ទីតាំង= 3នាក់)"
+      const headerLine = lines[0]; // e.g. "ក្រុមទី1(ព្យួរ 2 ទីតាំង= 6នាក់)" or "ក្រុមទី1(A5 2 ទីតាំង= 6នាក់)"
       if (!headerLine.includes('ក្រុម') && !headerLine.includes('ទីតាំង') && !headerLine.includes('រ៉ឺម៉ក') && !headerLine.includes('រម៉ក')) continue;
 
       // Extract seller/people count in header e.g. "12នាក់" or "12 នាក់"
@@ -192,9 +193,26 @@ export function parseKhmerSalesReport(text = '', chatTitle = '') {
       const sellerCount = peopleMatch ? parseInt(peopleMatch[1], 10) : 0;
       grandPeopleCount += sellerCount;
 
-      // Clean group title e.g. "ក្រុមទី1 (បងរិត)" or "រ៉ឺម៉កទី2 (បងA5)"
-      const titleMatch = headerLine.match(/((?:ក្រុម|រ៉ឺម៉ក|រម៉ក)[^\(=]+(?:\([^\)]+\))?)/i) || [headerLine, headerLine];
-      const groupTitle = titleMatch[1].trim();
+      // Extract Manager Name inside parenthesis e.g. "(ព្យួរ 2 ទីតាំង= 6នាក់)" -> "ព្យួរ"
+      let managerName = 'N/A';
+      const parenMatch = headerLine.match(/\(([^0-9\)\=\s]+)/);
+      if (parenMatch) {
+        managerName = parenMatch[1].trim();
+      }
+
+      // Extract raw group number if present e.g. "ក្រុមទី1" or "រ៉ឺម៉កទី2"
+      const rawGroupMatch = headerLine.match(/((?:ក្រុម|រ៉ឺម៉ក|រម៉ក)\s*ទី\s*\d+)/i);
+      const rawGroupNum = rawGroupMatch ? rawGroupMatch[1].trim() : '';
+
+      let groupTitle = '';
+      if (rawGroupNum && !subGroups.some(sg => sg.rawGroupNum === rawGroupNum)) {
+        // Unique raw group title
+        groupTitle = managerName !== 'N/A' ? `${rawGroupNum} (${managerName})` : rawGroupNum;
+      } else {
+        // Duplicate group number (e.g. both managers typed ក្រុមទី1) -> Auto-sequence to ក្រុមទី1, ក្រុមទី2, ក្រុមទី3...!
+        groupTitle = managerName !== 'N/A' ? `ក្រុមទី${groupIndex} (${managerName})` : `ក្រុមទី${groupIndex}`;
+      }
+      groupIndex++;
 
       // Extract itemized location sales amounts in this group
       let groupSubtotal = 0;
@@ -214,6 +232,7 @@ export function parseKhmerSalesReport(text = '', chatTitle = '') {
       grandTotalMoneyCalculated += groupSubtotal;
 
       subGroups.push({
+        rawGroupNum,
         groupTitle,
         sellerCount,
         subtotalNum: groupSubtotal,
