@@ -145,19 +145,23 @@ export function parseKhmerSalesReport(text = '', chatTitle = '') {
   const safeText = sanitizeInputText(text);
   if (!safeText) return null;
 
-  const isReport = safeText.includes('ទិន្នន័យលក់') || 
-                   safeText.includes('របាយការណ៍លក់') || 
-                   safeText.includes('ផលិតផលលក់') || 
-                   safeText.includes('លុយសរុប') ||
-                   safeText.includes('សរុបលក់បាន') ||
-                   safeText.includes('សរុបចំនួនមនុស្ស') ||
+  const isReport = safeText.includes('ទិន្នន័យ') || 
+                   safeText.includes('របាយការណ៍') || 
+                   safeText.includes('ផលិតផល') || 
+                   safeText.includes('លុយ') ||
+                   safeText.includes('ប្រាក់') ||
+                   safeText.includes('លក់') ||
+                   safeText.includes('សរុប') ||
                    safeText.includes('=>') ||
                    safeText.includes('ក្រុម') ||
                    safeText.includes('រ៉ឺម៉ក') ||
                    safeText.includes('រម៉ក') ||
-                   safeText.includes('លុយក្រៅ') ||
-                   safeText.includes('លុយកុង') ||
-                   safeText.includes('លុយក្នុងកុង');
+                   safeText.includes('+') ||
+                   safeText.includes('➕') ||
+                   safeText.includes('ទីតាំង') ||
+                   safeText.includes('សមាជិក') ||
+                   safeText.includes('អ្នកគ្រប់គ្រង') ||
+                   safeText.includes('ប្រធាន');
 
   if (!isReport) return null;
 
