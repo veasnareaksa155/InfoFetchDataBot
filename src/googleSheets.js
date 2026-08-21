@@ -980,9 +980,10 @@ export async function generateBossReportText(targetDateStr) {
     report += `ថ្ងៃទី${targetDate}\n\n`;
 
     groupsList.forEach((g, gIdx) => {
+      const groupNumStr = `ក្រុមទី${gIdx + 1}`;
       const mgrStr = g.managerName ? `${g.managerName} ` : '';
       const locCount = g.locations.length;
-      const headerStr = `=>${g.teamTitle}(${mgrStr}${locCount} ទីតាំង= ${g.sellerCount}នាក់)`;
+      const headerStr = `=>${groupNumStr}(${mgrStr}${locCount} ទីតាំង= ${g.sellerCount}នាក់)`;
       report += `${headerStr}\n`;
 
       g.locations.forEach((loc, lIdx) => {
