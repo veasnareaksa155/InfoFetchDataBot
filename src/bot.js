@@ -664,33 +664,21 @@ export function createBot() {
       if (isValidReport) {
         const reportDate = kr.reportDate || timestamp.split(' ')[0];
 
-        // 1. React IMMEDIATELY to the user's report message with 👍 or ✏️ emoji (within 50ms!)
-        let reacted = false;
+        // 1. React IMMEDIATELY to the user's report message with ✅ or ✏️ emoji - NO text reply!
         try {
           if (typeof ctx.react === 'function') {
-            await ctx.react(isEdited ? '✏️' : '👍');
-            reacted = true;
+            await ctx.react(isEdited ? '✏️' : '✅');
           } else {
-            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: isEdited ? '✏️' : '👍' }]);
-            reacted = true;
+            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: isEdited ? '✏️' : '✅' }]);
           }
         } catch (reactErr) {
           try {
-            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '👍' }]);
-            reacted = true;
+            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '✅' }]);
           } catch (e2) {
             console.warn(`[REACTION NOTICE] Telegram reaction failed for msg ${msg.message_id}: ${e2.message}`);
           }
         }
-
-        // Send explicit confirmation reply so users always know their report was received & logged
-        if (!isEdited) {
-          await ctx.reply('✅ <b>ទទួលបានទិន្នន័យរបាយការណ៍លក់រួចរាល់!</b> 📊', { 
-            parse_mode: 'HTML', 
-            reply_to_message_id: msg.message_id 
-          }).catch(() => {});
-        }
-        console.log(`[${isEdited ? '✏️ EDITED' : '👍'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
+        console.log(`[${isEdited ? '✏️ EDITED' : '✅'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
 
         // 2. Log single/multi-group report data to Google Sheets
         if (kr.isMultiGroup && kr.subGroups && kr.subGroups.length > 0) {
@@ -743,37 +731,17 @@ export function createBot() {
         // 3. Calculate & Re-sync Running Daily Grand Total across ALL teams!
         await calculateAndSyncDailyGrandTotal(reportDate);
 
-        // 4. Send concise "Noted! 👌" reply when a report message is EDITED
-        if (isEdited) {
-          await ctx.reply('Noted! 👌', { reply_to_message_id: msg.message_id }).catch(() => {
-            ctx.reply('Noted! 👌');
-          });
-        }
       } else if (isReportKeywordMatch) {
-        // Message matches report keywords BUT fails required form format or missing content!
+        // Message matches report keywords BUT fails required form format -> React ❌ - NO text reply!
         try {
           if (typeof ctx.react === 'function') {
             await ctx.react('❌');
           } else {
             await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '❌' }]);
           }
-        } catch (e) {}
-
-        let missingNotice = `❌ <b>សាររបាយការណ៍មិនទាន់ត្រឹមត្រូវតាម Form គំរូឡើយ! (Incomplete Form)</b>\n\n`;
-        if (formValidation.missingFields && formValidation.missingFields.length > 0) {
-          missingNotice += `សូមពិនិត្យមើល និងបំពេញព័ត៌មានដែលខ្វះក្នុងសាររបស់អ្នក៖\n`;
-          for (const missingItem of formValidation.missingFields) {
-            missingNotice += `• <b>${missingItem}</b>\n`;
-          }
-          missingNotice += `\n`;
-        } else {
-          missingNotice += `សូមពិនិត្យមើល និងបំពេញព័ត៌មានដែលខ្វះក្នុងសាររបស់អ្នក (ចំនួនមនុស្ស / ទឹកប្រាក់ / មុខទំនិញ)!\n\n`;
+        } catch (e) {
+          console.warn(`[REACTION NOTICE] Failed to react ❌ for msg ${msg.message_id}: ${e.message}`);
         }
-        missingNotice += `👉 <i>សូមចុចប៊ូតុង <b>[📝 Copy Form របាយការណ៍]</b> ឬវាយ <code>/form</code> ដើម្បីយក Form គំរូត្រឹមត្រូវ!</i> 📝`;
-
-        await ctx.reply(missingNotice, { parse_mode: 'HTML', reply_to_message_id: msg.message_id }).catch(() => {
-          ctx.reply(missingNotice, { parse_mode: 'HTML' });
-        });
       } else {
         // Non-report chat message in group -> Keep user message intact!
         console.log(`[💬 CHAT MESSAGE RECEIVED] [${chatTitle}] ${fullName}: ${content.slice(0, 30)}`);
