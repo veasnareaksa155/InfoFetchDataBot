@@ -649,8 +649,8 @@ export function createBot() {
         else content = '[សារផ្សេងៗ]';
       }
 
-      // Check if message is intended to be a sales report by searching for report keywords
-      const isReportKeywordMatch = /រម៉ក|រ៉ឺម៉ក|ក្រុម|លក់បាន|ប្រធាន|សមាជិក|លុយក្រៅ|លុយកុង|លុយក្នុងកុង|ទីតាំង|ចំនួនមនុស្ស|ទិន្នន័យលក់|របាយការណ៍លក់|ផលិតផលលក់|លុយសរុប|សរុបលក់បាន/i.test(content);
+      // Check if message is intended to be a sales report by searching for report keywords or form markers
+      const isReportKeywordMatch = /[\+➕]|រម៉ក|រ៉ឺម៉ក|ក្រុម|លក់|ប្រធាន|សមាជិក|លុយ|ទីតាំង|ចំនួនមនុស្ស|ទិន្នន័យ|របាយការណ៍|ផលិតផល|៛/i.test(content);
 
       // Validate official form format (+ ក្រុម..., + អ្នកគ្រប់គ្រង..., + ទីតាំង..., + សមាជិក..., + លុយសរុប...)
       const formValidation = validateOfficialFormFormat(content);
