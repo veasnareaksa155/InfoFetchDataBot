@@ -193,11 +193,13 @@ export function parseKhmerSalesReport(text = '', chatTitle = '') {
       const sellerCount = peopleMatch ? parseInt(peopleMatch[1], 10) : 0;
       grandPeopleCount += sellerCount;
 
-      // Extract Manager Name inside parenthesis e.g. "(ព្យួរ 2 ទីតាំង= 6នាក់)" -> "ព្យួរ"
+      // Extract Manager Name inside parenthesis e.g. "(A5 2 ទីតាំង= 6នាក់)" -> "A5", "(ព្យួរ 2 ទីតាំង= 6នាក់)" -> "ព្យួរ"
       let managerName = 'N/A';
-      const parenMatch = headerLine.match(/\(([^0-9\)\=\s]+)/);
+      const parenMatch = headerLine.match(/\(([^\)]+)\)/);
       if (parenMatch) {
-        managerName = parenMatch[1].trim();
+        const insideParen = parenMatch[1].trim();
+        const cleanedMgr = insideParen.replace(/\s*\d+\s*ទីតាំង.*$/i, '').replace(/\s*\d+\s*នាក់.*$/i, '').trim();
+        if (cleanedMgr) managerName = cleanedMgr;
       }
 
       // Extract raw group number if present e.g. "ក្រុមទី1" or "រ៉ឺម៉កទី2"
