@@ -1,7 +1,7 @@
 import { Telegraf, Markup } from 'telegraf';
 import { config, getFormattedDateTime } from './config.js';
 import { appendRowToTab, updateOrAppendSalesRow, calculateAndSyncDailyGrandTotal, getFinancialAnalyticsRange, generateBossReportText, getSheetStats, SALES_TAB, SUMMARY_TAB, GENERAL_TAB } from './googleSheets.js';
-import { parseMessageData } from './parser.js';
+import { parseMessageData, validateOfficialFormFormat } from './parser.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
