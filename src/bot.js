@@ -664,8 +664,24 @@ export function createBot() {
       if (isValidReport) {
         const reportDate = kr.reportDate || timestamp.split(' ')[0];
 
+        // 1. React IMMEDIATELY to the user's report message with 👍 or ✏️ emoji (within 50ms!)
+        try {
+          if (typeof ctx.react === 'function') {
+            await ctx.react(isEdited ? '✏️' : '👍');
+          } else {
+            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: isEdited ? '✏️' : '👍' }]);
+          }
+        } catch (reactErr) {
+          try {
+            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '👍' }]);
+          } catch (e2) {
+            console.warn(`[REACTION NOTICE] Telegram reaction failed for msg ${msg.message_id}: ${e2.message}`);
+          }
+        }
+        console.log(`[${isEdited ? '✏️ EDITED' : '👍'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
+
+        // 2. Log single/multi-group report data to Google Sheets
         if (kr.isMultiGroup && kr.subGroups && kr.subGroups.length > 0) {
-          // Log each sub-group as an individual team row in Google Sheets
           for (const sg of kr.subGroups) {
             let sgGroup = sg.groupTitle;
             let sgMgr = 'N/A';
@@ -694,7 +710,6 @@ export function createBot() {
           }
           console.log(`[📊 MULTI-GROUP SALES REPORT SAVED] ${kr.subGroups.length} Groups | Total: ${kr.totalMoneyStr}`);
         } else {
-          // Single team report row (12 Columns: Date, Remork, Manager, Location, Sender, SellerCount, SellersList, Total, Cash, Bank, Products, Raw)
           const rawSingleLine = content.split('\n').map(s => s.trim()).filter(Boolean).join(' | ');
           const salesRowData = [
             reportDate,
@@ -713,22 +728,8 @@ export function createBot() {
           await updateOrAppendSalesRow(SALES_TAB, salesRowData);
         }
 
-        // 2. Calculate & Re-sync Running Daily Grand Total across ALL teams!
+        // 3. Calculate & Re-sync Running Daily Grand Total across ALL teams!
         await calculateAndSyncDailyGrandTotal(reportDate);
-
-        // 3. React directly to the user's report message with 👍 emoji
-        try {
-          if (typeof ctx.react === 'function') {
-            await ctx.react(isEdited ? '✏️' : '👍');
-          } else {
-            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: isEdited ? '✏️' : '👍' }]);
-          }
-        } catch (reactErr) {
-          try {
-            await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '👍' }]);
-          } catch (e2) {}
-        }
-        console.log(`[${isEdited ? '✏️ EDITED' : '👍'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
 
         // 4. Send concise "Noted! 👌" reply when a report message is EDITED
         if (isEdited) {
