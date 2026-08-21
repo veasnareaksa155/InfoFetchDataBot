@@ -665,18 +665,26 @@ export function createBot() {
         const reportDate = kr.reportDate || timestamp.split(' ')[0];
 
         // 1. React IMMEDIATELY to the user's report message with 👍 or ✏️ emoji (within 50ms!)
+        let reacted = false;
         try {
           if (typeof ctx.react === 'function') {
             await ctx.react(isEdited ? '✏️' : '👍');
+            reacted = true;
           } else {
             await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: isEdited ? '✏️' : '👍' }]);
+            reacted = true;
           }
         } catch (reactErr) {
           try {
             await ctx.telegram.setMessageReaction(ctx.chat.id, msg.message_id, [{ type: 'emoji', emoji: '👍' }]);
+            reacted = true;
           } catch (e2) {
             console.warn(`[REACTION NOTICE] Telegram reaction failed for msg ${msg.message_id}: ${e2.message}`);
           }
+        }
+
+        if (!reacted && !isEdited) {
+          await ctx.reply('✅ ទទួលបានទិន្នន័យរួចរាល់ (Report Saved)! 👌', { reply_to_message_id: msg.message_id }).catch(() => {});
         }
         console.log(`[${isEdited ? '✏️ EDITED' : '👍'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
 
