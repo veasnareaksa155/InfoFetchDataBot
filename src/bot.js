@@ -683,8 +683,12 @@ export function createBot() {
           }
         }
 
-        if (!reacted && !isEdited) {
-          await ctx.reply('✅ ទទួលបានទិន្នន័យរួចរាល់ (Report Saved)! 👌', { reply_to_message_id: msg.message_id }).catch(() => {});
+        // Send explicit confirmation reply so users always know their report was received & logged
+        if (!isEdited) {
+          await ctx.reply('✅ <b>ទទួលបានទិន្នន័យរបាយការណ៍លក់រួចរាល់!</b> 📊', { 
+            parse_mode: 'HTML', 
+            reply_to_message_id: msg.message_id 
+          }).catch(() => {});
         }
         console.log(`[${isEdited ? '✏️ EDITED' : '👍'} REPORT PROCESSED] MsgID: ${msg.message_id}`);
 
